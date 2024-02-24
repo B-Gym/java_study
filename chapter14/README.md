@@ -801,6 +801,8 @@ Stream<String> strs3 = Stream.concat(strs1, strs2);
 
 ### 2-3. 스트림의 중간연산
 
+[🔗 `Interface Stream<T>` - Method Summary](https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html)
+
 <b></br> 📌 스트림 자르기 - `skip()`, `limit()` </b>
 
 - `skip()` : 매개변수 요소만큼 건너뜀
@@ -872,23 +874,222 @@ Stream<T>	peek(Consumer<? super T> action)
 
 <b></br> 📌 `mapToInt()`, `mapToLong()`, `mapToDouble()` </b>
 
+- 스트림의 요소를 숫자로 변경하는 경우 기본형 스트림으로 변환하는 것이 유용 (기본형 스트림만 제공하는 통계형 메서드를 사용하기 위해)
+
 ```java
+IntStream	mapToInt(ToIntFunction<? super T> mapper)
+LongStream	mapToLong(ToLongFunction<? super T> mapper)
+DoubleStream	mapToDouble(ToDoubleFunction<? super T> mapper)
+
+// 예제
+IntStream studentScoreStream = studentStream.mapToInt(Student::getTotalScore);
+int allToalScore = studentScoreStream.sum();
 
 ```
 
-<b></br> 📌 `Stream<T[]>`를 `Stream<T>`로 변환 - `flatMap()` </b>
+- Interface IntStream의 Method들 중 숫자를 다루는데 편리한 메서드 4개
+- ⚠️ 아래 메서드 4개 모두 최종 연산이기 때문에 호출 후 스트림이 닫힌다. 즉, 하나의 스트림에 아래 메서드를 연속해서 사용할 수 없음
+
+[🔗 Interface IntStream - Method Summary](https://docs.oracle.com/javase/8/docs/api/java/util/stream/IntStream.html)
 
 ```java
+int	sum()
+OptionalDouble	average()
+OptionalInt	max()
+OptionalInt	min()
+```
 
+- `summaryStatistics()` 메서드를 통해 하나의 스트림에 최종 연산을 하기 위해 새롭게 생성하는 번거로움을 없앨 수 있다.
+
+[🔗 Class IntSummaryStatistics - Method Summary ](https://docs.oracle.com/javase/8/docs/api/java/util/IntSummaryStatistics.html)
+
+```java
+IntSummaryStatistics	summaryStatistics()
+
+IntSummaryStatistics stat = scoreStream.summaryStatistics();
+long totalCount = stat.getCount();
+long totalScore = stat.getSum();
+double avgScore = stat.getAverage();
+int minScore = stat.min();
+int maxScore = stat.max();
+```
+
+- 기본형 스트림을 `Stream<T>`로 변환하는 경우에 `mapToObj()`를 사용
+
+[🔗 Interface IntStream - Method Summary ](https://docs.oracle.com/javase/8/docs/api/java/util/stream/IntStream.html)
+
+[🔗 Interface DoubleStream - Method Summary ](https://docs.oracle.com/javase/8/docs/api/java/util/stream/DoubleStream.html)
+
+[🔗 Interface LongStream - Method Summary ](https://docs.oracle.com/javase/8/docs/api/java/util/stream/LongStream.html)
+
+```java
+// IntStream
+Stream<Integer>	boxed()
+IntStream	map(IntUnaryOperator mapper)
+DoubleStream	mapToDouble(IntToDoubleFunction mapper)
+LongStream	mapToLong(IntToLongFunction mapper)
+<U> Stream<U>	mapToObj(IntFunction<? extends U> mapper)
+
+// DoubleStream
+Stream<Double>	boxed()
+DoubleStream	map(DoubleUnaryOperator mapper)
+IntStream	mapToInt(DoubleToIntFunction mapper)
+LongStream	mapToLong(DoubleToLongFunction mapper)
+<U> Stream<U>	mapToObj(DoubleFunction<? extends U> mapper)
+
+// LongStream
+Stream<Long>	boxed()
+LongStream	map(LongUnaryOperator mapper)
+IntStream	mapToInt(LongToIntFunction mapper)
+DoubleStream	mapToDouble(LongToDoubleFunction mapper)
+<U> Stream<U>	mapToObj(LongFunction<? extends U> mapper)
+```
+
+<b></br> 📌`StreamEx4.java` `Stream<T[]>`를 `Stream<T>`로 변환 - `flatMap()` </b>
+
+- `flatMap()`: 스트림 요소가 배열이거나 `map()`의 연산결과가 배열인 경우 즉, `Stream<T[]>`을 `Stream<T>`로 다루기 위해 사용
+
+```java
+<R> Stream<R>	flatMap(Function<? super T,? extends Stream<? extends R>> mapper)
 ```
 
 </br>
 
 ### 2-4. `Optional<T>`와 `OptionalInt`
 
+`OptionalEx1.java`
+
+[🔗 Class `Optional<T>` - Method Summary ](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html)
+
+- 스트림의 연산 결과가 `Optional`인 경우가 있는데 이때 `Optional`은 객체이므로 `Optional<T>` 내부 메서드를 통해 결과 값이 null인지 체크할 수 있다.
+
+```java
+String str = "Hello";
+Optional<String> optVal = Optional.of(str);
+
+Optional<String> optVal = Optional.of("Hello");
+
+Optional<String> optVal = Optional.of(new String("Hello"));
+```
+
+- 만일 참조 변수의 값이 null일 가능성이 있는 경우 `of()`가 아닌 `ofNullable()`을 사용하여 `Optional` 객체를 생성해야 한다.
+
+```java
+Optional<String> optVal = Optional.of(null); // 불가능 - NullPointerException 발생
+Optional<String> optVal = Optional.ofNullable(null); // 가능
+```
+
+- `Optional<T>` 타입의 참조변수를 기본값으로 초기화하는 경우에 null이 아닌 `empty()`를 사용하는 것이 바람직
+
+```java
+Optional<String> optVal = null; // 가능은 하다.
+Optional<String> optVal = Optional.<String>empty();
+Optional<String> optVal = Optional.empty();
+```
+
+- `Optional` 객체의 값을 가져올 때 `Optional` 객체의 값이 null인 경우에 NullPointerException가 발생할 수 있기 때문에 가져오고자 하는 객체의 값이 null인 경우에 대체해서 반환할 값을 지정할 수 있다.
+
+```java
+Optional<String> optVal1 = Optional.of("Hello");
+String str1 = optVal1.get();
+
+Optional<String> optVal2 = Optional.ofNullable(null);
+String str2 = optVal2.get(); // NoSuchElementException발생
+String str3 = optVal2.orElse("This is null");
+String str4 = optVal2.orElseGet(String::new); // () -> new String()과 동일
+String str5 = optVal2.orElseThrow(NullPointerException::new); // null인 경우 예외 발생시킴
+```
+
+[🔗 Class `OptionalInt` - Method Summary ](https://docs.oracle.com/javase/8/docs/api/java/util/OptionalInt.html)
+
+[🔗 Class `OptionalLong` - Method Summary ](https://docs.oracle.com/javase/8/docs/api/java/util/OptionalLong.html)
+
+[🔗 Class `OptionalDouble` - Method Summary ](https://docs.oracle.com/javase/8/docs/api/java/util/OptionalDouble.html)
+
+| Optional 클래스  | 값을 반환하는 메서드   |
+| :--------------- | :--------------------- |
+| `Optional<T>`    | `T get()`              |
+| `OptionalInt`    | `int getAsInt()`       |
+| `OptionalLong`   | `long getAsLong()`     |
+| `OptionalDouble` | `double getAsDouble()` |
+
 </br>
 
 ### 2-5. 스트림의 최종연산
+
+`StreamEx5.java`
+
+[🔗 `Interface Stream<T>` - Method Summary](https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html)
+
+<b></br> 📌 스트림 요소 출력하기 - `forEach()` </b>
+
+- `forEach()` : 반환 타입이 void여서 스트림의 요소를 출력하는 용도로 많이 사용
+
+```java
+void	forEach(Consumer<? super T> action)
+```
+
+<b></br> 📌 조건 검사 - `allMatch()`, `anyMatch()`, `noneMatch()`, `findFirst()`, `findAny()` </b>
+
+- `allMatch()` : 스트림 요소에 대해 지정된 조건에 모든 요소가 일치하는지 확인
+- `anyMatch()` : 스트림 요소에 대해 지정된 조건에 일부 요소가 일치하는지 확인
+- `noneMatch()` : 스트림 요소에 대해 지정된 조건에 어떠한 요소도 일치하지 않는지 확인
+- `findFirst()` : 스트림 요소 중 조건에 일치하는 첫 번째 요소를 반환
+- `findAny()` : 병렬 스트림인 경우에 `findFirst()` 대신 사용해야 함
+
+```java
+boolean	allMatch(Predicate<? super T> predicate)
+boolean	anyMatch(Predicate<? super T> predicate)
+boolean	noneMatch(Predicate<? super T> predicate)
+Optional<T>	findFirst()
+Optional<T>	findAny()
+```
+
+<b></br> 📌 통계 - `count()`, `sum()`, `average()`, `max()`, `min()` </b>
+
+- `count()` : 스트림 요소 개수 반환
+- `sum()` : 스트림의 총합 반환
+- `average()` : 스트림의 평균값 반환
+- `max()` : 스트림의 최댓값 반환
+- `min()` : 스트림의 최솟값 반환
+
+```java
+// Interface Stream<T> Method
+long count()
+Optional<T>	max(Comparator<? super T> comparator)
+Optional<T>	min(Comparator<? super T> comparator)
+
+// Interface IntStream Method
+long count()
+int	sum()
+OptionalDouble	average()
+OptionalInt	max()
+OptionalInt	min()
+
+// Interface LongStream Method
+long count()
+long sum()
+OptionalDouble	average()
+OptionalLong max()
+OptionalLong min()
+
+// Interface DoubleStream Method
+long count()
+double	sum()
+OptionalDouble	average()
+OptionalDouble	max()
+OptionalDouble	min()
+```
+
+<b></br> 📌 리듀싱 - `reduce()` </b>
+
+- `reduce()` : 스트림의 요소를 줄여나가면서 연산을 수행하여 최종 결과 반환
+
+```java
+Optional<T>	reduce(BinaryOperator<T> accumulator)
+T reduce(T identity, BinaryOperator<T> accumulator)
+U reduce(U identity, BiFunction<U,? super T,U> accumulator, BinaryOperator<U> combiner)
+```
 
 </br>
 
