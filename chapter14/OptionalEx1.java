@@ -3,7 +3,7 @@ package chapter14;
 import java.util.Optional;
 import java.util.OptionalInt;
 
-public class StreamEx5 {
+public class OptionalEx1 {
     public static void main(String[] args) {
         Optional<String> optStr = Optional.of("Hello");
         Optional<Integer> optInt = optStr.map(String::length);
