@@ -24,8 +24,9 @@ public class LambdaEx6 {
 
         // newList에 main 메서드에서 정의한 함수형 인터페이스 f를 list 내 구성요소에 적용한 값을 저장
         // f: 메개변수의 1의 자리 버린 값을 반환하는 함수
+        int idx = 0;
         for (int i : arr) {
-            newArr[i] = op.applyAsInt(arr[i]);
+            newArr[idx++] = op.applyAsInt(i);
         }
 
         return newArr;
