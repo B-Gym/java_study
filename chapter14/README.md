@@ -7,12 +7,28 @@
 5. [[1-4] java.util.function패키지](#1-4-javautilfunction-패키지)
 6. [[1-5] Function의 합성과 Predicate의 결합](#1-5-function의-합성과-predicate의-결합)
 7. [[1-6] 메서드 참조](#1-6-메서드-참조)
+8. [스트림(stream)](#2장-스트림stream)
+9. [[2-1] 스트림이란?](#2-1-스트림이란)
+10. [[2-2] 스트림 만들기](#2-2-스트림-만들기)
+11. [[2-3] 스트림의 중간연산](#2-3-스트림의-중간연산)
+12. [[2-4] Optional<T>와 OptionalInt](#2-4-optionalt와-optionalint)
+13. [[2-5] 스트림의 최종연산](#2-5-스트림의-최종연산)
+14. [[2-6] collect()](#2-6-collect)
+15. [[2-7] Collector 구현하기](#2-7-collector-구현하기)
+16. [[2-8] 스트림의 변환](#2-8-스트림의-변환)
 
----
+</br>
+</br>
 
 ## 1장 람다식(Lambda expression)
 
-</br>
+1. [람다식이란?](#1-1-람다식이란)
+2. [람다식 작성하기](#1-2-람다식-작성-방법)
+3. [함수형 인터페이스](#1-3-함수형-인터페이스-functional-interface)
+4. [java.util.function패키지](#1-4-javautilfunction-패키지)
+5. [Function의 합성과 Predicate의 결합](#1-5-function의-합성과-predicate의-결합)
+6. [메서드 참조](#1-6-메서드-참조)
+   </br>
 
 ### 1-1. 람다식이란?
 
@@ -217,7 +233,7 @@ int[] emptyArr() {
 
 </br>
 
-## 1-3. 함수형 인터페이스 (Functional Interface)
+### 1-3. 함수형 인터페이스 (Functional Interface)
 
 `LambdaEx1.java` 함수형 인터페이스 타입의 매개변수와 반환타입에 대한 예제
 
@@ -227,7 +243,9 @@ int[] emptyArr() {
 
 </br>
 
-## 1-4. java.util.function 패키지
+### 1-4. java.util.function 패키지
+
+[🔗 Package java.util.function - Interface Summary](https://docs.oracle.com/javase/8/docs/api/java/util/function/package-summary.html)
 
 <b> </br>📌 기본적인 함수형 인터페이스 </b>
 
@@ -476,7 +494,7 @@ public class LambdaEx {
 
 </br>
 
-## 1-5. Function의 합성과 Predicate의 결합
+### 1-5. Function의 합성과 Predicate의 결합
 
 ```java
 // Function
@@ -535,7 +553,7 @@ System.out.println(all.test(200)); // true
 
 </br>
 
-## 1-6. 메서드 참조
+### 1-6. 메서드 참조
 
 ```java
 Function<String, Integer> f1 = (s) -> Integer.parseInt(s);
@@ -568,4 +586,318 @@ Function<String, Integer> f2 = Integer::parseInt;
 |   `(StringBuffer sb, String s) -> sb.append(s)`   |   `StringBuffer::append`    |
 |       `(String s) -> System.out.println(s)`       |    `System.out::println`    |
 
----
+</br>
+</br>
+</br>
+</br>
+
+## 2장 스트림(stream)
+
+1. [스트림이란?](#2-1-스트림이란)
+2. [스트림 만들기](#2-2-스트림-만들기)
+3. [스트림의 중간연산](#2-3-스트림의-중간연산)
+4. [Optional<T>와 OptionalInt](#2-4-optionalt와-optionalint)
+5. [스트림의 최종연산](#2-5-스트림의-최종연산)
+6. [collect()](#2-6-collect)
+7. [Collector 구현하기](#2-7-collector-구현하기)
+8. [스트림의 변환](#2-8-스트림의-변환)
+
+</br>
+
+### 2-1. 스트림이란?
+
+[🔗 Package java.util.stream - Summary](https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html)
+
+[🔗 Interface Stream<T> - Method Summary](https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html)
+
+스트림은 추상화한 데이터를 다루는데 자주 사용되는 메서드를 정의해 놓았기 떄문에 데이터 소스의 타입이 무엇이던 같은 방식으로 다룰 수 있어 코드의 재사용성을 높인다.
+
+```java
+import java.util.*;
+import java.util.stream.*;
+
+public class StreamEx1 {
+    public static void main(String[] args) {
+        before();
+        after();
+    }
+
+    /**
+     * stream 사용 전: 데이터 소스마다 다른 방식으로 다뤄야 함
+     */
+    static void before() {
+        System.out.println("\nstream 사용 전");
+
+        String[] strArr1 = { "c", "bb", "a" };
+        List<String> strList1 = Arrays.asList("c", "bb", "a");
+
+        Arrays.sort(strArr1);
+        Collections.sort(strList1);
+
+        printArr(strArr1);
+        printList(strList1);
+    }
+
+    static void printArr(String[] arr) {
+        for (String s : arr) {
+            System.out.print(s + " ");
+        }
+        System.out.println();
+    }
+
+    static <T> void printList(List<T> list) {
+        for (T s : list) {
+            System.out.print(s + " ");
+        }
+        System.out.println();
+    }
+
+    /**
+     * stream 사용 후: 데이터 소스가 무엇이든 같은 방식으로 다룰 수 있음
+     */
+    static void after() {
+        System.out.println("\nstream 사용 후");
+
+        String[] strArr2 = { "c", "bb", "a" };
+        List<String> strList2 = Arrays.asList("c", "bb", "a");
+
+        Stream<String> strStream1 = Arrays.stream(strArr2);
+        Stream<String> strStream2 = strList2.stream();
+
+        strStream1.sorted().forEach(s -> System.out.print(s + " "));
+        System.out.println();
+        strStream2.sorted().forEach(s -> System.out.print(s + " "));
+        System.out.println();
+    }
+}
+```
+
+- 스트림은 데이터 소스를 변경하지 않는다.
+- 스트림은 일회용이다.
+- 스트림을 작업을 내부 반복으로 처리한다.
+
+<br></br>📌 Stream 연산 목록 표</b>
+
+| 중간연산                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | 셜명                     |
+| :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------- |
+| `Stream<T> distinct()`                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | 중복 제거                |
+| `Stream<T> filter(Predicate<T> predicate)`                                                                                                                                                                                                                                                                                                                                                                                                                                              | 조건에 안 맞는 요소 제외 |
+| `Stream<T> limit(long maxSize)`                                                                                                                                                                                                                                                                                                                                                                                                                                                         | 스트림 일부 자르기       |
+| `Stream<T> skip(long n)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                | 스트림 일부 건너뛰기     |
+| `Stream<T> peek(Consumer<T> action)`                                                                                                                                                                                                                                                                                                                                                                                                                                                    | 스트림 요소 작업 수행    |
+| `Stream<T> sorted()` </br> `Stream<T> sorted(Comparator<T> comparator)`                                                                                                                                                                                                                                                                                                                                                                                                                 | 스트림 요소 정렬         |
+| `Stream<R> map(Function<T,R> mapper)` </br> `DoubleStream mapToDouble(ToDoubleFunction<T> mapper) ` </br> `IntStream mapToInt(ToIntFunction<T> mapper) ` </br> `LongStream mapToLong(ToLongFunction<T> mapper)` </br> </br> `Stream<R> flatMap(Function<T, Stream<R>> mapper)` </br>`DoubleStream 	flatMapToDouble(Function<T, DoubleStream> mapper)` </br>`IntStream 	flatMapToInt(Function<T, IntStream> mapper)` </br>`LongStream 	flatMapToLong(Function<T, LongStream> mapper)` </br> | 스트림 요소 변환         |
+
+| 최종연산                                                                                                                                                                                                            | 셜명                                           |
+| :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :--------------------------------------------- |
+| `void forEach(Consumer<? super T) action` </br> `void forEachOrdered(Consumer<? super T> action)`                                                                                                                   | 각 요소에 지정된 작업 수행                     |
+| `long count() `                                                                                                                                                                                                     | 스트림 요소 개수 반환                          |
+| `Optional<T> max(Comparator<? super T> comparator)` </br> `Optional<T> min(Comparator<? super T> comparator)`                                                                                                       | 스트림의 최댓값, 최솟값 반환                   |
+| `boolean allMatch(Predicate<T> p)` </br> `boolean anyMatch(Predicate<T> p)` </br> `boolean noneMatch(Predicate<T> p)`                                                                                               | 주어진 조건을 모든 요소가 만족하는지 여부 확인 |
+| `Optional<T> findAny()` </br> `Optional<T> findFirst()`                                                                                                                                                             | 스트림 요소 하나 반환                          |
+| `Object[] toArray()` </br> `A[] toArray(IntFunction<A[]> generator)`                                                                                                                                                | 스트림 모든 요소를 배열로 반환                 |
+| `Optional<T> reduce(BinaryOperator<T> accumulator)` </br> `T 	reduce(T identity, BinaryOperator<T> accumulator)` </br> `<U> U reduce(U identity, BiFunction<U,? super T,U> accumulator, BinaryOperator<U> combiner)` | 스트림의 요소를 하나씩 줄여가면서 계산         |
+| `<R, A> R collect(Collector<? super T,A,R> collector)` </br> `<R> R	collect(Supplier<R> supplier, BiConsumer<R,? super T> accumulator, BiConsumer<R,R> combiner)`                                                    | 스트림 요소를 수집                             |
+
+- 스트림 연산은 <b>최종 연산이 수행되어야만</b> 중간 연산이 수행된다.
+- 스트림으로 데이터를 다룰 때 병렬로 처리하고 싶은 경우 스트림에 `parallel()`을 호출한다. 스트림의 속성을 병렬로 변경한 것을 취소하고 싶은 경우에는 `sequential()`을 호출하면 된다.
+
+</br>
+
+### 2-2. 스트림 만들기
+
+`Stream<T> Collection.stream();`
+
+<b></br> 📌 배열을 소스로 하는 스트림 생성</b>
+
+```java
+Stream<T> Stream.of(T... values) // 가변 인자
+Stream<T> Stream.of(T[])
+Stream<T> Arrays.stream(T[])
+Stream<T> Arrays.stream(T[] array, int startInclusive, int endExclusive)
+
+// int(IntStream), long(LongStream), double(DoubleStream)과 같은 기본형 배열을 소스로 하는 스트림 생성
+IntStream IntStream.of(int... values)
+IntStream IntStream.of(int[])
+IntStream Arrays.stream(int[])
+IntStream Arrays.stream(int[] array, int startInclusive, int endExclusive)
+```
+
+<b></br> 📌 지정된 범위의 연속된 정수 가지는 스트림 생성</b>
+
+```java
+IntStream IntStream.range(int begin, int end) // 경계의 끝이 포함 x
+IntStream IntStream.rangeClosed(int begin, int end) // 경계의 끝이 포함 o
+```
+
+<b></br> 📌 지정된 타입에 따른 난수로 이루어진 스트림 생성</b>
+
+```java
+// 크기가 정해지지 않은 무한 스트림 생성
+IntStream ints()
+LongStream longs()
+DoubleStream doubles()
+
+// 지정된 범위의 난수를 발생시키는 무한 스트림 생성
+IntStream ints(int begin, int end)
+LongStream longs(long begin, long end)
+DoubleStream doubles(double begin, double end)
+
+
+// limit()를 사용하여 무한 스트림을 유한 스트림으로 변환하여 생성
+IntStream ints(long streamSize)
+LongStream longs(long streamSize)
+DoubleStream doubles(long streamSize)
+
+// 지정된 범위의 난수를 발생시키는 유한 스트림 생성
+IntStream ints(long streamSize, int begin, int end)
+LongStream longs(long streamSize, long begin, long end)
+DoubleStream doubles(long streamSize, double begin, double end)
+
+IntStream intStream = new Random().ints(5) // 스트림의 크기가 5인 난수 스크림 생성
+IntStream intStream = new Random().ints(5, 1, 10) // 1-9 범위의 난수를 발생시키는 크기가 5인 난수 스크림 생성
+```
+
+<b></br> 📌 매개 변수로 받은 람다식에 의해 계산된 값을 요소로 하는 무한 스트림 생성 - iterate(), generate()</b>
+
+- ⚠️ iterate()와 generate()에 의해 생성된 스트림은 기본형 스트림 타입의 참조변수로 다룰 수 없음 (필요한 경우에 변환하고자 하는 `<T>`의 `mapTo<T>()` 메서드로 변환해야 함) (ex) `IntStream intStream = Stream.iterate(0, n -> n+2).mapToInt(Integer::parseInt)`
+- `<T>Stream` 타입의 스트림을 `Stream<T>`으로 변환하려는 경우 `boxed()`를 사용하면 됨 (ex) `Stream<Integer> stream = intStream.boxed();`
+
+```java
+static <T> Stream<T> iterate(T seed, UnaryOperator<T> f)
+static <T> Stream<T> generate(Supplier<T> s)
+```
+
+<b></br> 📌 지정된 디렉토리(dir)에 있는 파일 목록을 소스로 하는 스트림 생성</b>
+
+[🔗 Package java.nio.file.Files](https://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html)
+
+```java
+static Stream<Path>	Files.list(Path dir)
+
+static Stream<String>	Files.lines(Path path)
+static Stream<String>	Files.lines(Path path, Charset cs)
+static Stream<String>	lines()
+```
+
+<b></br> 📌 요소가 없는 비어있는 스트림 생성 - `Stream.empty()`</b>
+
+```java
+Stream emptyStream = Stream.empty(); // empty(): 빈 스크림 생성 후 반환
+long count = emptyStream.count(); // 0
+```
+
+<b></br> 📌 두 스트림을 연결한 스트림 생성 - `Stream.concat()`</b>
+
+- ⚠️ 연결하려는 두 스트림의 타입은 같아야 한다.
+
+```java
+Stream<String> strs1 = Stream.of("123", "456", "789");
+Stream<String> strs2 = Stream.of("ABC", "abc", "DEF");
+Stream<String> strs3 = Stream.concat(strs1, strs2);
+```
+
+</br>
+
+### 2-3. 스트림의 중간연산
+
+<b></br> 📌 스트림 자르기 - `skip()`, `limit()` </b>
+
+- `skip()` : 매개변수 요소만큼 건너뜀
+- `limit()` : 스트림의 요소를 매개변수 만큼 제한
+
+```java
+Stream<T>	skip(long n)
+Stream<T>	limit(long maxSize)
+
+// 기본형 스트림
+IntStream	    skip(long n)
+IntStream	    limit(long maxSize)
+LongStream	    skip(long n)
+LongStream	    limit(long maxSize)
+DoubleStream	skip(long n)
+DoubleStream	limit(long maxSize)
+
+
+// 사용 방법
+IntStream intStream = IntStream.rangeClosed(1,10);
+intStream.skip(3).limit(4).forEach(System.out::print); // 4567
+```
+
+<b></br> 📌 스트림 요소 걸러내기 - `filter()`, `distinct()`</b>
+
+- `filter()` : 주어진 조건(Predicate)에 맞지 않는 요소 거름, 필요한 경우 다른 조건으로 여러 번 사용 가능
+- `distinct()` : 스트림에서 중복된 요소 제거
+
+```java
+Stream<T>	filter(Predicate<? super T> predicate)
+Stream<T>	distinct()
+
+// 사용 방법 : distinct()
+IntStream intStream = IntStream.of(1, 2, 2, 3, 3, 4, 5, 6);
+intStream.distinct().forEach(System.out::print); // 123456
+
+// 사용 방법 : filter(Predicate<? super T> predicate)
+IntStream intStream = IntStream.rangeClosed(1,10);
+intStream.filter(i -> i % 2 == 0).forEach(System.out::print); // 246810
+```
+
+<b></br> 📌`StreamEx1.java` 정렬 - `sorted()` </b>
+
+[🔗 Interface Comparator<T> - Method Summary](https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html)
+
+- `sorted()` : 지정된 Comparator로 스트림을 정렬하는데, Comparator 대신 int값 반환하는 람다식 사용도 가능. Comparator 지정하지 않는 경우 스트림 요소의 기본 정렬기준에 따라 정렬
+- ⚠️ 스트림 요소가 Comparable을 구현한 클래스가 아니라면 예외 발생
+
+```java
+Stream<T>	sorted()
+Stream<T>	sorted(Comparator<? super T> comparator)
+```
+
+<b></br> 📌 `StreamEx2.java`변환 - `map()` </b>
+
+- `map()` : 스트림 요소에 저장된 값 중 원하는 필드만 뽑아내거나 특정 형태로 변환해야 할 때 사용
+
+```java
+ Stream<R>	map(Function<? super T,? extends R> mapper)
+```
+
+<b></br> 📌 조회 - `peek()` </b>
+
+- `peek()` : 연산과 연산 사이에 올바르게 처리되었는지 확인하는 메서드, `filter()`나 `map()`의 결과를 확인할 때 유용하게 사용
+
+```java
+Stream<T>	peek(Consumer<? super T> action)
+```
+
+<b></br> 📌 `mapToInt()`, `mapToLong()`, `mapToDouble()` </b>
+
+```java
+
+```
+
+<b></br> 📌 `Stream<T[]>`를 `Stream<T>`로 변환 - `flatMap()` </b>
+
+```java
+
+```
+
+</br>
+
+### 2-4. `Optional<T>`와 `OptionalInt`
+
+</br>
+
+### 2-5. 스트림의 최종연산
+
+</br>
+
+### 2-6. collect()
+
+</br>
+
+### 2-7. Collector 구현하기
+
+</br>
+
+### 2-8. 스트림의 변환
