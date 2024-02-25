@@ -610,7 +610,7 @@ Function<String, Integer> f2 = Integer::parseInt;
 
 [🔗 Interface Stream<T> - Method Summary](https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html)
 
-스트림은 추상화한 데이터를 다루는데 자주 사용되는 메서드를 정의해 놓았기 떄문에 데이터 소스의 타입이 무엇이던 같은 방식으로 다룰 수 있어 코드의 재사용성을 높인다.
+스트림은 추상화한 데이터를 다루는데 자주 사용되는 메서드를 정의해 놓았기 때문에 데이터 소스의 타입이 무엇이던 같은 방식으로 다룰 수 있어 코드의 재사용성을 높인다.
 
 ```java
 import java.util.*;
@@ -1095,10 +1095,268 @@ U reduce(U identity, BiFunction<U,? super T,U> accumulator, BinaryOperator<U> co
 
 ### 2-6. collect()
 
+`StreamEx6.java`
+
+[🔗 `Interface Stream<T>` - Method Summary](https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html)
+
+[🔗 Interface Collector - Method Summary ](https://docs.oracle.com/javase/8/docs/api/java/util/stream/Collector.html)
+
+[🔗 Class Collectors - Method Summary](https://docs.oracle.com/javase/8/docs/api/java/util/stream/Collectors.html)
+
+- `collect()` : 스트림의 요소를 어떻게 수집할 것인지에 대한 방법을 정의한 메서드
+
+```java
+collect() // 스트림의 최종 연산, 매개변수로 컬렉터를 필요로 함
+Interface Collector // 인터페이스, 컬렉터는 이 인터페이스를 구현해야 함
+class Collectors // 클래스, static 메서드로 미리 작성된 컬렉터 제공
+```
+
+<b></br> 📌 스크림을 컬렉션과 배열로 반환 - `toList()`, `toSet()`, `toMap()`, `toCollection()`, `toArray()`</b>
+
+```java
+List<String> names = stuStream.map(Student::getName)
+                            .collect(Collectors.toList());
+ArrayList<String> list = names.stream()
+                            .collect(Collectors.toCollection(ArrayList::new));
+Map<String, Student> map = stuStream
+                    `       `.collect(Collectors.toMap(s -> s.getName(), s -> s)); // s -> s == Function.identity()
+
+Student[] stuArr = stuStream.toArray(Student::new);
+Object[] stuArr = stuStream.toArray();
+```
+
+<b></br> 📌 통계 - `counting()`, `summingInt()`, `averagingInt()`, `maxBy()`, `minBy()` </b>
+
+```java
+long count = Stream.of(stuArr)
+                .collect(Collectors.counting());
+long totalScore = Stream.of(stuArr)
+                .collect(Collectors.summingInt(Student::getTotalScore));
+
+
+totalScore = Stream.of(stuArr)
+                .collect(Collectors.reducing(0, Student::getTotalScore, Integer::sum));
+
+Optional<Student> topStudent = Stream.of(stuArr)
+                .max(Comparator.comparingInt(Student::getTotalScore));
+
+Optional<Student> topStudent = Stream.of(stuArr)
+                .collect(Collectors.maxBy(Comparator.comparingInt(Student::getTotalScore)));
+
+IntSummaryStatistics stat = Stream.of(stuArr)
+                .collect(Collectors.summarizingInt(Student::getTotalScore));
+```
+
+<b></br> 📌 리듀싱 - `reducing()` </b>
+
+```java
+static <T> Collector<T,?,Optional<T>>	reducing(BinaryOperator<T> op)
+static <T> Collector<T,?,T>	reducing(T identity, BinaryOperator<T> op)
+static <T,U> Collector<T,?,U>	reducing(U identity, Function<? super T,? extends U> mapper, BinaryOperator<U> op)
+```
+
+<b></br> 📌 문자열 결합 - `joining()` </b>
+
+```java
+static Collector<CharSequence,?,String>	joining()
+static Collector<CharSequence,?,String>	joining(CharSequence delimiter)
+static Collector<CharSequence,?,String>	joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix)
+```
+
+<b></br> 📌 그룹화와 분할 - `groupingBy()`, `partitioningBy()` </b>
+
+- `groupingBy()` : 스트림 요소를 Function으로 분류
+- `partitioningBy()` : 스트림 요소를 Predicate로 분류. 스트림을 두 개의 그룹으로 나눠야 하는 경우 `partitioningBy()`로 분할하는 것이 더 빠름
+- 그룹화 분할의 결과는 Map에 담겨 반환됨
+
+`StreamEx7.java` : `partitioningBy()` 예제
+
+`StreamEx8.java` : `groupingBy()` 예제
+
+```java
+static <T,K> Collector<T,?,Map<K,List<T>>>	groupingBy(Function<? super T,? extends K> classifier)
+static <T,K,A,D> Collector<T,?,Map<K,D>>	groupingBy(Function<? super T,? extends K> classifier, Collector<? super T,A,D> downstream)
+static <T,K,D,A,M extends Map<K,D>> Collector<T,?,M> groupingBy(Function<? super T,? extends K> classifier, Supplier<M> mapFactory, Collector<? super T,A,D> downstream)
+
+static <T> Collector<T,?,Map<Boolean,List<T>>>	partitioningBy(Predicate<? super T> predicate)
+static <T,D,A> Collector<T,?,Map<Boolean,D>>	partitioningBy(Predicate<? super T> predicate, Collector<? super T,A,D> downstream)
+```
+
 </br>
 
 ### 2-7. Collector 구현하기
 
+`CollectorEx1.java`
+
+[🔗 Interface Collector<T,A,R>](https://docs.oracle.com/javase/8/docs/api/java/util/stream/Collector.html)
+
+```java
+BiConsumer<A,T>	accumulator() // A function that folds a value into a mutable result container.
+Set<Collector.Characteristics>	characteristics() //Returns a Set of Collector.Characteristics indicating the characteristics of this Collector.
+BinaryOperator<A>	combiner() // A function that accepts two partial results and merges them.
+Function<A,R>	finisher() // Perform the final transformation from the intermediate accumulation type A to the final result type R.
+static <T,A,R> Collector<T,A,R>	of(Supplier<A> supplier, BiConsumer<A,T> accumulator, BinaryOperator<A> combiner, Function<A,R> finisher, Collector.Characteristics... characteristics) // Returns a new Collector described by the given supplier, accumulator, combiner, and finisher functions.
+static <T,R> Collector<T,R,R>	of(Supplier<R> supplier, BiConsumer<R,T> accumulator, BinaryOperator<R> combiner, Collector.Characteristics... characteristics) // Returns a new Collector described by the given supplier, accumulator, and combiner functions.
+Supplier<A>	supplier() // A function that creates and returns a new mutable result container.
+```
+
+- `supplier()` : 작업 결과를 저장할 공간 제공
+- `accumulator()` : 스트림의 요소를 수집할 방법 제공
+- `combiner()` : 두 저장공간을 병합할 방법을 제공(병렬 스트림)
+- `finisher()` : 결과를 최종적으로 변환할 방법을 제공
+- `characteristics()` : 컬렉터가 수행하는 작업의 속성에 대한 정보를 제공
+
 </br>
 
 ### 2-8. 스트림의 변환
+
+<table class="tg">
+<thead>
+  <tr>
+    <th class="tg-0lax">from</th>
+    <th class="tg-0lax">to</th>
+    <th class="tg-0lax">변환 시 사용하는 메서드</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td class="tg-0lax" colspan="3">1. 스트림 → 기본형 스트림</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Stream&lt;T&gt;</td>
+    <td class="tg-0lax">IntStream<br>LongStream<br><span style="font-weight:400;font-style:normal">Double</span>Stream</td>
+    <td class="tg-0lax">mapToInt(ToIntFunction&lt;T&gt; mapper)<br>mapToLong(ToLongFunction&lt;T&gt; mapper)<br>mapToDoublt(ToDoubleFunction&lt;T&gt; mapper)</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax" colspan="3">2.&nbsp;&nbsp;기본형 스트림 →&nbsp;&nbsp;스트림</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax" rowspan="2">IntStream<br>LongStream<br><span style="font-weight:400;font-style:normal">Double</span>Stream</td>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">Stream&lt;Integer&gt;</span><br><span style="font-weight:400;font-style:normal">Stream&lt;Long&gt;</span><br><span style="font-weight:400;font-style:normal">Stream&lt;Double&gt;</span></td>
+    <td class="tg-0lax">boxed()</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Stream&lt;U&gt;</td>
+    <td class="tg-0lax">mapToObj(DoubleFunction&lt;U&gt; mapper)</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax" colspan="3">3. 기본형 스트림 → 기본형 스트림</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">IntStream<br>LongStream<br><span style="font-weight:400;font-style:normal">Double</span>Stream</td>
+    <td class="tg-0lax">LongStream<br><br><span style="font-weight:400;font-style:normal">Double</span>Stream</td>
+    <td class="tg-0lax">asLongStream()<br>asDoubleStream()</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax" colspan="3">4. 스트림 → 부분 스트림</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Stream&lt;T&gt;<br>IntStream</td>
+    <td class="tg-0lax">Stream&lt;T&gt;<br>IntStream</td>
+    <td class="tg-0lax">skip(long n)<br>limit(long maxSize)</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax" colspan="3">5. 두 개의 스트림 → 스트림</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Stream&lt;T&gt;, Stream&lt;T&gt;</td>
+    <td class="tg-0lax">Stream&lt;T&gt;</td>
+    <td class="tg-0lax">concat(Stream&lt;T&gt; a, Stream&lt;T&gt; b)</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">IntStream, IntStream</span></td>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">IntStream</span></td>
+    <td class="tg-0lax">concat(IntStream a, IntStream b)</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">LongStream, LongStream</span></td>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">LongStream</span></td>
+    <td class="tg-0lax">concat(LongStream a, LongStream b)</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">DoubleStream, DoubleStream</span></td>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">DoubleStream</span></td>
+    <td class="tg-0lax">concat(DoubleStream a, DoubleStream b)</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax" colspan="3">6. 스트림의 스트림  → 스트림</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">Stream&lt;Stream&lt;T&gt;&gt;</span></td>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">Stream&lt;T&gt;</span></td>
+    <td class="tg-0lax">flatMap(Function mapper)</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">Stream&lt;IntStream&gt;</span></td>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">IntStream</span></td>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">flatMapToInt(Function mapper)</span></td>
+  </tr>
+  <tr>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">Stream&lt;LongStream&gt;</span></td>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">LongStream</span></td>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">flatMapToLong(Function mapper)</span></td>
+  </tr>
+  <tr>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">Stream&lt;DoubleStream&gt;</span></td>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">DoubleStream</span></td>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">flatMapToDouble(Function mapper)</span></td>
+  </tr>
+  <tr>
+    <td class="tg-0lax" colspan="3">7. 스트림 ↔ 병렬스트림</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">Stream&lt;T&gt;</span><br>IntStream<br>LongStream<br><span style="font-weight:400;font-style:normal">Double</span>Stream</td>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">Stream&lt;T&gt;</span><br>IntStream<br>LongStream<br><span style="font-weight:400;font-style:normal">Double</span><br>Stream</td>
+    <td class="tg-0lax">parallel()<br>sequential()</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax" colspan="3">8. 스트림&nbsp;&nbsp;→ 컬렉션</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax" rowspan="3"><span style="font-weight:400;font-style:normal">Stream&lt;T&gt;</span><br>IntStream<br>LongStream<br>DoubleStream</td>
+    <td class="tg-0lax">Collection&lt;T&gt;</td>
+    <td class="tg-0lax">collect(Collectors.toCollection(Supplier factory))</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">List&lt;T&gt;</td>
+    <td class="tg-0lax">collect(Collectors.toList())</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Set&lt;T&gt;</td>
+    <td class="tg-0lax">collect(Collectors.toSet())</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax" colspan="3">9. 컬렉션 → 스트림</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">Collection&lt;T&gt;</span><br><span style="font-weight:400;font-style:normal">List&lt;T&gt;</span><br><span style="font-weight:400;font-style:normal">Set&lt;T&gt;</span></td>
+    <td class="tg-0lax">Stream&lt;T&gt;</td>
+    <td class="tg-0lax">stream()</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax" colspan="3">10. 스트림&nbsp;&nbsp;→ Map</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax"><span style="font-weight:400;font-style:normal">Stream&lt;T&gt;</span><br>IntStream<br>LongStream<br><span style="font-weight:400;font-style:normal">DoubleStream</span></td>
+    <td class="tg-0lax">Map&lt;K,V&gt;</td>
+    <td class="tg-0lax">collect(Collectors.toMap(Function key, Function value))<br>collect(Collectors.toMap(Function k, Function v, BinaryOperator))<br>collect(Collectors.toMap(Function k, Function v, BinaryOperator merge, Supplier mapSupplier))</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax" colspan="3">11. 스트림&nbsp;&nbsp;→ 배열</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax" rowspan="2"><span style="font-weight:400;font-style:normal">Stream&lt;T&gt;</span></td>
+    <td class="tg-0lax">Object[]</td>
+    <td class="tg-0lax">toArray()</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">T[]</td>
+    <td class="tg-0lax">toArray(IntFunction&lt;A[]&gt; generator)</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">IntStream<br>LongStream<br><br><span style="font-weight:400;font-style:normal">DoubleStream</span></td>
+    <td class="tg-0lax">int[]<br>long[]<br>double[]</td>
+    <td class="tg-0lax">toArray()</td>
+  </tr>
+</tbody>
+</table>
