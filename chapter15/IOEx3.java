@@ -32,3 +32,12 @@ public class IOEx3 {
 
     }
 }
+
+// 실행 결과
+// Input Source : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+// temp :[0, 1, 2, 3]
+// Output Source: [0, 1, 2, 3]
+// temp :[4, 5, 6, 7]
+// Output Source: [0, 1, 2, 3, 4, 5, 6, 7]
+// temp :[8, 9, 6, 7]
+// Output Source: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 6, 7]
