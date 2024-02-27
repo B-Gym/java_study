@@ -10,7 +10,7 @@ public class StandardIOEx3 {
         FileOutputStream fos = null;
 
         try {
-            fos = new FileOutputStream("test.txt");
+            fos = new FileOutputStream("chapter15/test2.txt");
             ps = new PrintStream(fos);
             System.setOut(ps);
         } catch (FileNotFoundException e) {
