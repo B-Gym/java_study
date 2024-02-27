@@ -1,0 +1,21 @@
+package chapter15;
+
+public class UserInfo implements java.io.Serializable {
+    String name;
+    String password;
+    int age;
+
+    public UserInfo() {
+        this("Unknown", "11111", 0);
+    }
+
+    public UserInfo(String name, String password, int age) {
+        this.name = name;
+        this.password = password;
+        this.age = age;
+    }
+
+    public String toString() {
+        return String.format("(%s, %s, %d)", name, password, age);
+    }
+}
