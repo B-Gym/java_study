@@ -14,6 +14,7 @@ public class BufferedOutputStreamEx1 {
             for (int i = '1'; i <= '9'; i++) {
                 bos.write(i);
             }
+            // bos.close();
             fos.close();
         } catch (IOException e) {
             e.printStackTrace();
