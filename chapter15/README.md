@@ -341,11 +341,11 @@ abstract void write(char[] c, int off, int len)
 
 [🔗 Class PrintStream](https://docs.oracle.com/javase/8/docs/api/java/io/PrintStream.html)
 
+`PrintStreamEx1.java`
+
 - `PrintStream` : 데이터를 기반스트림에 다양한 형태로 출력할 수 있는 print, printf, println과 같은 메서드를 오버로딩하여 제공
 
-- ㅔ
-
-[🔗 Class Formatter](https://docs.oracle.com/javase/8/docs/api/java/util/Formatter.html)
+- printf()는 JDK1.5부터 추가된 것으로 형식화된 출력을 지원하는데 이때 사용될 수 있는 옵션은 [🔗 Class Formatter](https://docs.oracle.com/javase/8/docs/api/java/util/Formatter.html)를 통해 참고하면 된다.
 
 </br>
 
@@ -358,17 +358,54 @@ abstract void write(char[] c, int off, int len)
 
 ### 4-1. Reader & Writer
 
+[🔗 Class Reader](https://docs.oracle.com/javase/8/docs/api/java/io/Reader.html)
+
+[🔗Class Writer](https://docs.oracle.com/javase/8/docs/api/java/io/Writer.html)
+
+- 바이트기반 스트림의 조상이 InputStream/OutputStream인 것과 같이 문자기반 스트림에서는 Reader/Writer가 조상이다.
+- byte[] 대신 char[]을 사용한다는 것 외에는 InputStream/OutputStream의 메서드와 다르지 않다.
+- 문자기반 스트림은 여러 종류의 인코딩과 자바에서 사용하는 유니코드간의 변환을 자동적으로 처리해준다.
+
 </br>
 
 ### 4-2. FileReader & FileWriter
+
+[🔗 Class FileReader](https://docs.oracle.com/javase/8/docs/api/java/io/FileReader.html)
+
+[🔗 Class FileWriter](https://docs.oracle.com/javase/8/docs/api/java/io/FilterWriter.html)
+
+`FileReaderEx1.java`
+`FileConversion.java`
+
+- `FileReader` & `FileWriter` : 파일로부터 텍스트 데이터를 읽고 쓰는데 사용
 
 </br>
 
 ### 4-3. PipedReader & PipedWriter
 
+[🔗 Class PipedReader](https://docs.oracle.com/javase/8/docs/api/java/io/PipedReader.html)
+
+[🔗 Class PipedWriter](https://docs.oracle.com/javase/8/docs/api/java/io/PipedWriter.html)
+
+`PipedReaderWriter.java`
+
+- `PipedReader` & `PipedWriter` : 쓰레드 간에 데이터를 주고 받을 때 사용
+- 다른 스트림과 달리 입력과 출력 스트림을 하나의 스트림으로 연결해서 데이터를 주고 받음
+- 스트림을 생성한 다음 어느 한 쪽 쓰레드에서 `connect()`를 호출해서 입력스트림과 출력 스트림을 연결
+- 입출력을 마친 후 어느 한 쪽의 스트림만 닫아도 나머지 스트림은 자동으로 닫힘
+
 </br>
 
 ### 4-4. StringReader & StringWriter
+
+[🔗 Class StringReader](https://docs.oracle.com/javase/8/docs/api/java/io/StringReader.html)
+
+[🔗 Class StringWriter](https://docs.oracle.com/javase/8/docs/api/java/io/StringWriter.html)
+
+`StringReaderWriterEx.java`
+
+- `StringReader` & `StringWriter` : 입출력 대상이 메모리인 스트림
+- `StringWriter`에 출력되는 데이터는 내부의 StringBuffer에 저장되며 `StringWriter`의 `getBuffer()`, `toString()` 메서드를 이용하여 저장된 데이터를 얻을 수 있음
 
 </br>
 
@@ -379,9 +416,29 @@ abstract void write(char[] c, int off, int len)
 
 ### 5-1. BufferedReader & BufferedWriter
 
+[🔗 Class BufferedReader](https://docs.oracle.com/javase/8/docs/api/java/io/BufferedReader.html)
+
+[🔗 Class BufferedWriter](https://docs.oracle.com/javase/8/docs/api/java/io/BufferedWriter.html)
+
+`BufferedReaderEx1.java`
+
+- `BufferedReader` & `BufferedWriter` : 버퍼를 이용해서 입출력의 효율을 높이도록 해준다
+- 버퍼를 사용하면 입출력의 효율이 높아지기 때문에 사용하는 것을 권장
+- `BufferedReader`의 `readLine()`을 사용하면 데이터를 라인단위로 읽을 수 있다.
+- `BufferedWriter`의 `newLine()`을 사용하면 줄바꿈을 할 수 있다.
+
 </br>
 
 ### 5-2. InputStreamReader & OutputStreamWriter
+
+[🔗 Class InputStreamReader](https://docs.oracle.com/javase/8/docs/api/java/io/InputStreamReader.html)
+
+[🔗 Class OutputStreamWriter](https://docs.oracle.com/javase/8/docs/api/java/io/OutputStreamWriter.html)
+
+`InputStreamReaderEx.java`
+
+- `InputStreamReader` & `OutputStreamWriter` : 바이트기반 스트림을 문자기반 스트림으로 연결시켜주는 역할을 한다.
+- 바이트기반 스트림의 데이터를 지정된 인코딩의 문자데이터로 변환하는 작업을 수행
 
 </br>
 
@@ -394,17 +451,49 @@ abstract void write(char[] c, int off, int len)
 
 ### 6-1. 표준 입출력 - System.in, System.out, System.err
 
+`StandardIOEx1.java`
+
+- 표준입출력은 콘솔을 통한 데이터 입력과 콘솔로의 데이터 출력을 의미
+- 자바에서는 표준입출력을 위해 `System.in`, `System.out`, `System.err`의 3가지 입출력 스트림을 제공
+
 </br>
 
 ### 6-2. 표준 입출력의 대상 변경 - `setOut()`, `setErr()`, `setIn()`
+
+`StandardIOEx2.java`, `StandardIOEx3.java`
 
 </br>
 
 ### 6-3. RandomAccessFile
 
-</br>
+[🔗 Class RandomAccessFile](https://docs.oracle.com/javase/8/docs/api/java/io/RandomAccessFile.html)
+
+`RandomAccessFileEx1.java`, `RandomAccessFileEx2.java`, `RandomAccessFileEx3.java`
+
+- `RandomAccessFile` : 하나의 클래스로 파일에 대한 입력과 출력을 모두 할 수 있도록 함
+- 내부적으로 파일 포인터를 사용하여 입출력시 파일 포인터가 위치한 곳에서 작업이 수행 됨
+- 파일 포인터의 위치는 파일의 제일 첫 부분이며 읽기 또는 쓰기를 수행할 때마다 작업이 수행된 다음 위치로 이동
+- 파일의 임의의 위치에 있는 내용에 대해 작업하고자 하면 파일 포인터를 원하는 위치로 옮긴 다음 작업을 해야 함
+- `long getFilePointer()`: 현재 작업중인 위치를 알고 싶은 경우 사용
+- `void seek(long pos)`, `int skipBytes(int n)` : 파일 포인터의 위치를 옮기고 싶은 경우 사용
+
+  </br>
 
 ### 6-4. File
+
+[🔗 Class File](https://docs.oracle.com/javase/8/docs/api/java/io/File.html)
+
+`FileEx1.java`,
+`FileEx2.java`,
+`FileEx3.java`,
+`FileEx4.java`,
+`FileEx5.java`,
+`FileEx6.java`,
+`FileEx7.java`,
+`FileEx8.java`,
+`FileEx9.java`,
+`FileSplit.java`,
+`FileMerge.java`
 
 </br>
 
@@ -417,16 +506,55 @@ abstract void write(char[] c, int off, int len)
 
 ### 7-1. 직렬화란?
 
+- 객체를 데이터 스트림으로 만드는 것
+- 객체에 저장된 데이터를 스트림에 쓰기 위해 연속적인 데이터로 변환하는 것
+
 </br>
 
 ### 7-2. ObjectInputStream, ObjectOutputStream
+
+[🔗 Class ObjectInputStream](https://docs.oracle.com/javase/8/docs/api/java/io/ObjectInputStream.html)
+
+[🔗 Class ObjectOutputStream](https://docs.oracle.com/javase/8/docs/api/java/io/ObjectOutputStream.html)
+
+- 직렬화(스트림에 객체를 출력)에는 `ObjectOutputStream`을 사용
+- 역직렬화(스트림으로부터 객체를 입력)에는 `ObjectInputStream`을 사용
 
 </br>
 
 ### 7-3. 직렬화가 가능한 클래스 만들기 - Serializable, transient
 
+[🔗 Interface Serializable](https://docs.oracle.com/javase/8/docs/api/java/io/Serializable.html)
+
+`UserInfo.java`, `UserInfo2.java`, `SerialEx1.java`, `SerialEx2.java`
+
+- 직렬화하고자 하는 클래스가 `Serializable` 인터페이스를 구현하도록 하면 된다.
+- 클래슨 내에 인스턴스 변수 중 직렬화하면 안되는 값에 대해 `transient`를 사용하면 직렬화 대상에서 제외된다.
+
+```java
+public class Student implements java.io.Serializable {
+    String name;
+    transient String address; // 직렬화 대상에서 제외
+    int ban;
+    int totalScore;
+}
+```
+
 </br>
 
 ### 7-4. 직렬화가 가능한 클래스의 버전 관리
 
-</br>
+- 직렬화된 객체를 역직렬화할 때는 직렬화 했을 때와 같은 클래스를 사용해야 한다. 그러나 클래스의 이름이 같더라도 클래스의 내용이 변경된 경우 역직렬화는 실패하며 예외가 발생한다.
+- 네크웍으로 객체를 직렬화하여 전송하는 경우 보내는 쪽과 받는 쪽 모두 같은 버전의 클래스를 가지고 있어야 하는데 클래스가 조금만 변경되어도 해당 클래스를 재배포하는 것은 프로그램 관리를 어렵게 만든다.
+- 이럴 때 클래스의 버전을 수동으로 관리해줄 필요가 있다.
+
+```java
+class MyData implements java.io.Serializable{
+    static final long serialVersionUID = 3418731765298119L;
+    int myDataVal;
+}
+```
+
+- 이처럼 `serialVersionUID`를 정의해주면 클래스의 내용이 바뀌어도 클래스의 버번이 자동생성된 값으로 변경되지 않는다.
+
+  </br>
